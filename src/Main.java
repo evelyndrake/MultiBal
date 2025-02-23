@@ -35,8 +35,8 @@ public class Main {
         fileChooser.setApproveButtonToolTipText("Select the mods folder");
         fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         fileChooser.showDialog(null, "Select");
-//        Path modFolderPath = fileChooser.getSelectedFile().toPath();
-        Path modFolderPath = Paths.get()
+        Path modFolderPath = fileChooser.getSelectedFile().toPath();
+//        Path modFolderPath = Paths.get()
         System.out.println(modFolderPath);
         // Find all mod folders
         modList = new ArrayList<>();
