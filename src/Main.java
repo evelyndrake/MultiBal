@@ -1,9 +1,10 @@
+import org.zeroturnaround.zip.ZipUtil;
+
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -23,6 +24,10 @@ public class Main {
     private JTable table1;
     private JButton installFromURLButton;
     private JButton installFromZipButton;
+    private JButton openModFolderButton;
+    private JButton openGameFolderButton;
+    private JButton exportModsFolderToZip;
+    private JButton showGithubLink;
     private ArrayList<Mod> modList;
     private Path downloadFolderPath;
     private Path modFolderPath;
@@ -34,7 +39,6 @@ public class Main {
                 // Open a dialog to enter a URL
                 String url = JOptionPane.showInputDialog("Enter the URL of the mod to install");
                 if (url != null) {
-
                     // Download the mod from the URL
                     System.out.println("Downloading mod from " + url);
                     String zipUrl = url + "/archive/refs/heads/main.zip";
@@ -101,10 +105,64 @@ public class Main {
                 }
             }
         });
+        openModFolderButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Desktop.getDesktop().open(modFolderPath.toFile());
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        openGameFolderButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Desktop.getDesktop().open(modFolderPath.getParent().toFile());
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        exportModsFolderToZip.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Prompt for path to save the zip file
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.setDialogTitle("Save the mods folder as a zip file");
+                fileChooser.setApproveButtonText("Save");
+                fileChooser.setApproveButtonMnemonic('s');
+                fileChooser.setApproveButtonToolTipText("Save the mods folder as a zip file");
+                fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+                fileChooser.showDialog(null, "Save");
+                File zipFile = fileChooser.getSelectedFile();
+                // Add .zip
+                if (!zipFile.getName().toLowerCase().endsWith(".zip")) {
+                    zipFile = new File(zipFile.getAbsolutePath() + ".zip");
+                }
+                if (zipFile != null) {
+                    // Create a zip file of the mods folder
+                    System.out.println("Creating zip file");
+                    ZipUtil.pack(new File(modFolderPath.toString()), zipFile);
+                }
+            }
+        });
+        showGithubLink.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Desktop.getDesktop().browse(new URL("https://github.com/evelyndrake/MultiBal").toURI());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Main");
+        JFrame frame = new JFrame("MultiBal");
         frame.setContentPane(new Main().test);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
@@ -214,9 +272,8 @@ public class Main {
         fileChooser.setApproveButtonMnemonic('s');
         fileChooser.setApproveButtonToolTipText("Select the mods folder");
         fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-//        fileChooser.showDialog(null, "Select");
-//        Path modFolderPath = fileChooser.getSelectedFile().toPath();
-        modFolderPath = Paths.get("/Users/julian/Library/Application Support/Balatro/Mods");
+        fileChooser.showDialog(null, "Select");
+        Path modFolderPath = fileChooser.getSelectedFile().toPath();
         // Set download folder path above Mods folder, create if it doesn't exist
         downloadFolderPath = Paths.get(modFolderPath.getParent().toString(), "Downloads");
         File downloadFolder = downloadFolderPath.toFile();
