@@ -1,7 +1,9 @@
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -43,7 +45,7 @@ public class Main {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    // Extract the zip file in place
+                    // Extract the zip file
                     System.out.println("Extracting mod");
                     try {
                         unzip(zipFileName, modFolderPath.toString());
@@ -55,6 +57,43 @@ public class Main {
                     File zipFile = zipFilePath.toFile();
                     if (zipFile.exists()) {
                         zipFile.delete();
+                    }
+                    // Refresh the mod list
+                    initializeModList();
+                    refreshModTable();
+                }
+            }
+        });
+        installFromZipButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Open a dialog to select a zip file
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                // Only show zip files
+                fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+                    public boolean accept(File file) {
+                        return file.getName().toLowerCase().endsWith(".zip") || file.isDirectory();
+                    }
+
+                    public String getDescription() {
+                        return "Zip files";
+                    }
+                });
+                fileChooser.setDialogTitle("Select the zip file to install");
+                fileChooser.setApproveButtonText("Select");
+                fileChooser.setApproveButtonMnemonic('s');
+                fileChooser.setApproveButtonToolTipText("Select the zip file to install");
+                fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+                fileChooser.showDialog(null, "Select");
+                File zipFile = fileChooser.getSelectedFile();
+                if (zipFile != null) {
+                    // Extract the zip file
+                    System.out.println("Extracting mod");
+                    try {
+                        unzip(zipFile.getAbsolutePath(), modFolderPath.toString());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
                     }
                     // Refresh the mod list
                     initializeModList();
@@ -149,6 +188,7 @@ public class Main {
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return columnIndex == 1;
             }
+
         };
 
         model.addTableModelListener(new TableModelListener() {
