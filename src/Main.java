@@ -2,11 +2,18 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
-import java.io.File;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class Main {
 
@@ -15,6 +22,47 @@ public class Main {
     private JButton installFromURLButton;
     private JButton installFromZipButton;
     private ArrayList<Mod> modList;
+    private Path downloadFolderPath;
+    private Path modFolderPath;
+
+    public Main() {
+        installFromURLButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Open a dialog to enter a URL
+                String url = JOptionPane.showInputDialog("Enter the URL of the mod to install");
+                if (url != null) {
+
+                    // Download the mod from the URL
+                    System.out.println("Downloading mod from " + url);
+                    String zipUrl = url + "/archive/refs/heads/main.zip";
+                    // Download the zip file to the Downloads folder
+                    String zipFileName = Paths.get(downloadFolderPath.toString(), "mod.zip").toString();
+                    try {
+                        downloadFile(zipUrl, zipFileName);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    // Extract the zip file in place
+                    System.out.println("Extracting mod");
+                    try {
+                        unzip(zipFileName, modFolderPath.toString());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    // Remove mod.zip if it exists
+                    Path zipFilePath = Paths.get(downloadFolderPath.toString(), "mod.zip");
+                    File zipFile = zipFilePath.toFile();
+                    if (zipFile.exists()) {
+                        zipFile.delete();
+                    }
+                    // Refresh the mod list
+                    initializeModList();
+                    refreshModTable();
+                }
+            }
+        });
+    }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Main");
@@ -24,20 +72,46 @@ public class Main {
         frame.setVisible(true);
     }
 
-    private void createUIComponents() {
-        table1 = new JTable();
-        // Show a dialog to select the mods folder
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setDialogTitle("Select the mods folder");
-        fileChooser.setApproveButtonText("Select");
-        fileChooser.setApproveButtonMnemonic('s');
-        fileChooser.setApproveButtonToolTipText("Select the mods folder");
-        fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-        fileChooser.showDialog(null, "Select");
-        Path modFolderPath = fileChooser.getSelectedFile().toPath();
-//        Path modFolderPath = Paths.get()
-        System.out.println(modFolderPath);
+    private static void unzip(String zipFilePath, String destDir) throws IOException {
+        File dir = new File(destDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        try (FileInputStream fis = new FileInputStream(zipFilePath);
+             ZipInputStream zipIn = new ZipInputStream(fis)) {
+            ZipEntry entry = zipIn.getNextEntry();
+            while (entry != null) {
+                String filePath = destDir + File.separator + entry.getName();
+                if (!entry.isDirectory()) {
+                    extractFile(zipIn, filePath);
+                } else {
+                    File subDir = new File(filePath);
+                    subDir.mkdirs();
+                }
+                zipIn.closeEntry();
+                entry = zipIn.getNextEntry();
+            }
+        }
+    }
+
+    private static void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(filePath)) {
+            byte[] bytes = new byte[1024];
+            int length;
+            while ((length = zipIn.read(bytes)) >= 0) {
+                fos.write(bytes, 0, length);
+            }
+        }
+    }
+
+    private static void downloadFile(String fileUrl, String localFilePath) throws IOException {
+        URL url = new URL(fileUrl);
+        try (InputStream in = url.openStream()) {
+            Files.copy(in, Paths.get(localFilePath), StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private void initializeModList() {
         // Find all mod folders
         modList = new ArrayList<>();
         for (File file : Objects.requireNonNull(modFolderPath.toFile().listFiles())) {
@@ -52,6 +126,9 @@ public class Main {
                 modList.add(new Mod(file, file.getName(), false));
             }
         }
+    }
+
+    private void refreshModTable() {
         // Add mod folders to the table
         String[] columnNames = {"Mod Name", "Enabled"};
         Object[][] data = new Object[modList.size()][2];
@@ -85,6 +162,30 @@ public class Main {
             }
         });
         table1.setModel(model);
+    }
+
+    private void createUIComponents() {
+        table1 = new JTable();
+        // Show a dialog to select the mods folder
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setDialogTitle("Select the mods folder");
+        fileChooser.setApproveButtonText("Select");
+        fileChooser.setApproveButtonMnemonic('s');
+        fileChooser.setApproveButtonToolTipText("Select the mods folder");
+        fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+//        fileChooser.showDialog(null, "Select");
+//        Path modFolderPath = fileChooser.getSelectedFile().toPath();
+        modFolderPath = Paths.get("/Users/julian/Library/Application Support/Balatro/Mods");
+        // Set download folder path above Mods folder, create if it doesn't exist
+        downloadFolderPath = Paths.get(modFolderPath.getParent().toString(), "Downloads");
+        File downloadFolder = downloadFolderPath.toFile();
+        if (!downloadFolder.exists()) {
+            downloadFolder.mkdir();
+        }
+
+        initializeModList();
+        refreshModTable();
 
         // Create a disabled folder in the directory above the mods folder if it doesn't exist
         File disabledFolder = new File(modFolderPath.getParent().toString(), "Disabled");
