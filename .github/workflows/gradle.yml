@@ -30,7 +30,7 @@ jobs:
     - name: Upload JAR Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: my-app
+        name: MultiBal
         path: build/libs/*.jar
 
   release:
@@ -45,7 +45,7 @@ jobs:
     - name: Download JAR Artifact
       uses: actions/download-artifact@v4
       with:
-        name: my-app
+        name: MultiBal
 
     - name: Create GitHub Release
       id: create_release
@@ -65,5 +65,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: build/libs/*.jar
-        asset_name: my-app.jar
+        asset_name: MultiBal.jar
         asset_content_type: application/java-archive
