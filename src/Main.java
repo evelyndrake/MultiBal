@@ -273,7 +273,7 @@ public class Main {
         fileChooser.setApproveButtonToolTipText("Select the mods folder");
         fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         fileChooser.showDialog(null, "Select");
-        Path modFolderPath = fileChooser.getSelectedFile().toPath();
+        modFolderPath = fileChooser.getSelectedFile().toPath();
         // Set download folder path above Mods folder, create if it doesn't exist
         downloadFolderPath = Paths.get(modFolderPath.getParent().toString(), "Downloads");
         File downloadFolder = downloadFolderPath.toFile();
