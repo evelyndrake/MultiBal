@@ -1,11 +1,11 @@
 import java.io.File;
 
 public class Mod {
-    private File modFolder;
-    private String modName;
+    private final File modFolder;
+    private final String modName;
     private boolean isEnabled;
-    private File disabledFolder;
-    private File modsFolder;
+    private final File disabledFolder;
+    private final File modsFolder;
     public Mod(File modFolder, String modName, boolean isEnabled) {
         this.modFolder = modFolder;
         this.modName = modName;
