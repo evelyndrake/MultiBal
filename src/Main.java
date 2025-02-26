@@ -9,14 +9,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class Main {
 
@@ -45,14 +41,14 @@ public class Main {
                     // Download the zip file to the Downloads folder
                     String zipFileName = Paths.get(downloadFolderPath.toString(), "mod.zip").toString();
                     try {
-                        downloadFile(zipUrl, zipFileName);
+                        FileOperations.downloadFile(zipUrl, zipFileName);
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
                     // Extract the zip file
                     System.out.println("Extracting mod");
                     try {
-                        unzip(zipFileName, modFolderPath.toString());
+                        FileOperations.unzip(zipFileName, modFolderPath.toString());
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -95,7 +91,7 @@ public class Main {
                     // Extract the zip file
                     System.out.println("Extracting mod");
                     try {
-                        unzip(zipFile.getAbsolutePath(), modFolderPath.toString());
+                        FileOperations.unzip(zipFile.getAbsolutePath(), modFolderPath.toString());
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -142,11 +138,9 @@ public class Main {
                 if (!zipFile.getName().toLowerCase().endsWith(".zip")) {
                     zipFile = new File(zipFile.getAbsolutePath() + ".zip");
                 }
-                if (zipFile != null) {
-                    // Create a zip file of the mods folder
-                    System.out.println("Creating zip file");
-                    ZipUtil.pack(new File(modFolderPath.toString()), zipFile);
-                }
+                // Create a zip file of the mods folder
+                System.out.println("Creating zip file");
+                ZipUtil.pack(new File(modFolderPath.toString()), zipFile);
             }
         });
         showGithubLink.addActionListener(new ActionListener() {
@@ -167,45 +161,6 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-    }
-
-    private static void unzip(String zipFilePath, String destDir) throws IOException {
-        File dir = new File(destDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        try (FileInputStream fis = new FileInputStream(zipFilePath);
-             ZipInputStream zipIn = new ZipInputStream(fis)) {
-            ZipEntry entry = zipIn.getNextEntry();
-            while (entry != null) {
-                String filePath = destDir + File.separator + entry.getName();
-                if (!entry.isDirectory()) {
-                    extractFile(zipIn, filePath);
-                } else {
-                    File subDir = new File(filePath);
-                    subDir.mkdirs();
-                }
-                zipIn.closeEntry();
-                entry = zipIn.getNextEntry();
-            }
-        }
-    }
-
-    private static void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
-        try (FileOutputStream fos = new FileOutputStream(filePath)) {
-            byte[] bytes = new byte[1024];
-            int length;
-            while ((length = zipIn.read(bytes)) >= 0) {
-                fos.write(bytes, 0, length);
-            }
-        }
-    }
-
-    private static void downloadFile(String fileUrl, String localFilePath) throws IOException {
-        URL url = new URL(fileUrl);
-        try (InputStream in = url.openStream()) {
-            Files.copy(in, Paths.get(localFilePath), StandardCopyOption.REPLACE_EXISTING);
-        }
     }
 
     private void initializeModList() {
@@ -262,9 +217,7 @@ public class Main {
         table1.setModel(model);
     }
 
-    private void createUIComponents() {
-        table1 = new JTable();
-        // Show a dialog to select the mods folder
+    private void findDirectories() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setDialogTitle("Select the mods folder");
@@ -280,15 +233,18 @@ public class Main {
         if (!downloadFolder.exists()) {
             downloadFolder.mkdir();
         }
-
-        initializeModList();
-        refreshModTable();
-
         // Create a disabled folder in the directory above the mods folder if it doesn't exist
         File disabledFolder = new File(modFolderPath.getParent().toString(), "Disabled");
         if (!disabledFolder.exists()) {
             disabledFolder.mkdir();
         }
+    }
 
+    private void createUIComponents() {
+        table1 = new JTable();
+        // Show a dialog to select the mods folder
+        findDirectories();
+        initializeModList();
+        refreshModTable();
     }
 }
