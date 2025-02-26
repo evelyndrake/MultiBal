@@ -78,7 +78,6 @@ public class Main {
                     public boolean accept(File file) {
                         return file.getName().toLowerCase().endsWith(".zip") || file.isDirectory();
                     }
-
                     public String getDescription() {
                         return "Zip files";
                     }

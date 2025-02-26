@@ -7,6 +7,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class FileOperations {
+    // Extracts a zip file to a specified directory
     public static void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
         try (FileOutputStream fos = new FileOutputStream(filePath)) {
             byte[] bytes = new byte[1024];
@@ -17,6 +18,7 @@ public class FileOperations {
         }
     }
 
+    // Downloads a file from a URL to a local path
     public static void downloadFile(String fileUrl, String localFilePath) throws IOException {
         URL url = new URL(fileUrl);
         try (InputStream in = url.openStream()) {
@@ -24,6 +26,7 @@ public class FileOperations {
         }
     }
 
+    // Unzips a zip file to a specified directory
     public static void unzip(String zipFilePath, String destDir) throws IOException {
         File dir = new File(destDir);
         if (!dir.exists()) {
