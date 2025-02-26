@@ -19,7 +19,7 @@
         </properties>
         <border type="line" title="Manage Mods"/>
         <children>
-          <component id="cea37" class="javax.swing.JTable" binding="table1" custom-create="true" default-binding="true">
+          <component id="cea37" class="javax.swing.JTable" binding="table1" default-binding="true">
             <constraints/>
             <properties/>
           </component>

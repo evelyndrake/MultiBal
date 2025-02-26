@@ -29,7 +29,9 @@ public class Main {
     private Path modFolderPath;
 
     public Main() {
+        // Add action listeners to buttons
         installFromURLButton.addActionListener(new ActionListener() {
+            // Open a dialog to enter a URL
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Open a dialog to enter a URL
@@ -65,6 +67,7 @@ public class Main {
             }
         });
         installFromZipButton.addActionListener(new ActionListener() {
+            // Open a dialog to select a zip file
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Open a dialog to select a zip file
@@ -102,6 +105,7 @@ public class Main {
             }
         });
         openModFolderButton.addActionListener(new ActionListener() {
+            // Open the mod folder
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -112,6 +116,7 @@ public class Main {
             }
         });
         openGameFolderButton.addActionListener(new ActionListener() {
+            // Open the game folder
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -122,6 +127,7 @@ public class Main {
             }
         });
         exportModsFolderToZip.addActionListener(new ActionListener() {
+            // Export the mods folder to a zip file
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Prompt for path to save the zip file
@@ -144,6 +150,7 @@ public class Main {
             }
         });
         showGithubLink.addActionListener(new ActionListener() {
+            // Open the GitHub link to the project
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -155,6 +162,7 @@ public class Main {
         });
     }
 
+    // Main method to run the application
     public static void main(String[] args) {
         JFrame frame = new JFrame("MultiBal");
         frame.setContentPane(new Main().test);
@@ -163,6 +171,7 @@ public class Main {
         frame.setVisible(true);
     }
 
+    // Initialize the mod list by loading mod folders from the Mods directory
     private void initializeModList() {
         // Find all mod folders
         modList = new ArrayList<>();
@@ -180,6 +189,7 @@ public class Main {
         }
     }
 
+    // Refresh the mod table with the current mod list
     private void refreshModTable() {
         // Add mod folders to the table
         String[] columnNames = {"Mod Name", "Enabled"};
@@ -204,6 +214,7 @@ public class Main {
 
         };
 
+        // Toggle enabled state when the checkbox column is clicked
         model.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
@@ -217,6 +228,7 @@ public class Main {
         table1.setModel(model);
     }
 
+    // Prompt the user to select the mods folder
     private void findDirectories() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -227,22 +239,21 @@ public class Main {
         fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         fileChooser.showDialog(null, "Select");
         modFolderPath = fileChooser.getSelectedFile().toPath();
-        // Set download folder path above Mods folder, create if it doesn't exist
+        // Set Downloads folder path above Mods folder, create if it doesn't exist
         downloadFolderPath = Paths.get(modFolderPath.getParent().toString(), "Downloads");
         File downloadFolder = downloadFolderPath.toFile();
         if (!downloadFolder.exists()) {
             downloadFolder.mkdir();
         }
-        // Create a disabled folder in the directory above the mods folder if it doesn't exist
+        // Create a Disabled folder in the directory above the mods folder if it doesn't exist
         File disabledFolder = new File(modFolderPath.getParent().toString(), "Disabled");
         if (!disabledFolder.exists()) {
             disabledFolder.mkdir();
         }
     }
 
+    // Create UI components and initialize the mod list on application startup
     private void createUIComponents() {
-        table1 = new JTable();
-        // Show a dialog to select the mods folder
         findDirectories();
         initializeModList();
         refreshModTable();
