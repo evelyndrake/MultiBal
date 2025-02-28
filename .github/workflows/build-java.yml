@@ -19,7 +19,7 @@ jobs:
       - name: Compile Java code
         run: |
           mkdir -p out
-          javac -classpath ./lib/forms_rt.jar -d out *.java
+          javac -classpath ./lib/forms_rt.jar -d out src/*.java
 
       - name: Package into JAR
         run: |
