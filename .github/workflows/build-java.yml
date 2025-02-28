@@ -1,9 +1,7 @@
-name: Build Java Project
+name: Build and Release Java Project
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
 
 jobs:
@@ -31,5 +29,27 @@ jobs:
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: built-jar
+          name: MultiBal
           path: build/MultiBal.jar
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MultiBal
+          path: build
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v1.0.${{ github.run_number }}  # Auto-incremented tag
+          name: "MultiBal Release v1.0.${{ github.run_number }}"
+          draft: false
+          prerelease: false
+          artifacts: "build/MultiBal.jar"
+          token: ${{ secrets.GITHUB_TOKEN }}
