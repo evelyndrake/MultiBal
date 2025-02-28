@@ -236,22 +236,35 @@ public class Main {
 
     // Prompt the user to select the mods folder
     private void findDirectories() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setDialogTitle("Select the mods folder");
-        fileChooser.setApproveButtonMnemonic('s');
-        fileChooser.setMultiSelectionEnabled(false);
-        fileChooser.setApproveButtonToolTipText("Select the mods folder");
-        fileChooser.showDialog(null, "Select");
-        System.out.println("Selected mods folder: " + fileChooser.getSelectedFile());
-        File selectedFile = fileChooser.getSelectedFile();
-        // Load the mod folder path for testing
-        // If the selected file ends with Mods/Mods, set the mod folder path to the parent directory
-        if (selectedFile.getAbsolutePath().endsWith("Mods" + File.separator + "Mods")) {
-            selectedFile = selectedFile.getParentFile();
+        // Check for a filepath.txt file in the current directory
+        File file = new File("filepath.txt");
+        if (file.exists()) {
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    modFolderPath = Paths.get(line);
+                    System.out.println("Loaded mod folder path from filepath.txt: " + modFolderPath);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            fileChooser.setDialogTitle("Select the mods folder");
+            fileChooser.setApproveButtonMnemonic('s');
+            fileChooser.setMultiSelectionEnabled(false);
+            fileChooser.setApproveButtonToolTipText("Select the mods folder");
+            fileChooser.showDialog(null, "Select");
+            System.out.println("Selected mods folder: " + fileChooser.getSelectedFile());
+            File selectedFile = fileChooser.getSelectedFile();
+            // Load the mod folder path for testing
+            // If the selected file ends with Mods/Mods, set the mod folder path to the parent directory
+            if (selectedFile.getAbsolutePath().endsWith("Mods" + File.separator + "Mods")) {
+                selectedFile = selectedFile.getParentFile();
+            }
+            modFolderPath = selectedFile.toPath();
         }
-        modFolderPath = selectedFile.toPath();
-
         // Set Downloads folder path above Mods folder, create if it doesn't exist
         downloadFolderPath = Paths.get(modFolderPath.getParent().toString(), "Downloads");
         File downloadFolder = downloadFolderPath.toFile();
@@ -262,6 +275,14 @@ public class Main {
         File disabledFolder = new File(modFolderPath.getParent().toString(), "Disabled");
         if (!disabledFolder.exists()) {
             disabledFolder.mkdir();
+        }
+        // If the filepath.txt file doesn't exist, create it and write the mod folder path to it
+        if (!file.exists()) {
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(modFolderPath.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
