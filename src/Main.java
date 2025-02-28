@@ -1,5 +1,3 @@
-import org.zeroturnaround.zip.ZipUtil;
-
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -16,7 +14,7 @@ import java.util.Objects;
 
 public class Main {
 
-    private JPanel test;
+    private JPanel mainPanel;
     private JTable table1;
     private JButton installFromURLButton;
     private JButton installFromZipButton;
@@ -145,7 +143,11 @@ public class Main {
                 }
                 // Create a zip file of the mods folder
                 System.out.println("Creating zip file");
-                ZipUtil.pack(new File(modFolderPath.toString()), zipFile);
+                try {
+                    FileOperations.pack(new File(modFolderPath.toString()), zipFile);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
         showGithubLink.addActionListener(new ActionListener() {
@@ -164,7 +166,7 @@ public class Main {
     // Main method to run the application
     public static void main(String[] args) {
         JFrame frame = new JFrame("MultiBal");
-        frame.setContentPane(new Main().test);
+        frame.setContentPane(new Main().mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
@@ -232,12 +234,21 @@ public class Main {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setDialogTitle("Select the mods folder");
-        fileChooser.setApproveButtonText("Select");
         fileChooser.setApproveButtonMnemonic('s');
+        fileChooser.setMultiSelectionEnabled(false);
         fileChooser.setApproveButtonToolTipText("Select the mods folder");
-        fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+
+
         fileChooser.showDialog(null, "Select");
-        modFolderPath = fileChooser.getSelectedFile().toPath();
+        System.out.println("Selected mods folder: " + fileChooser.getSelectedFile());
+        File selectedFile = fileChooser.getSelectedFile();
+        // Load the mod folder path for testing
+        // If the selected file ends with Mods/Mods, set the mod folder path to the parent directory
+        if (selectedFile.getAbsolutePath().endsWith("Mods"+ File.separator +"Mods")) {
+            selectedFile = selectedFile.getParentFile();
+        }
+        modFolderPath = selectedFile.toPath();
+
         // Set Downloads folder path above Mods folder, create if it doesn't exist
         downloadFolderPath = Paths.get(modFolderPath.getParent().toString(), "Downloads");
         File downloadFolder = downloadFolderPath.toFile();
@@ -251,8 +262,10 @@ public class Main {
         }
     }
 
-    // Create UI components and initialize the mod list on application startup
+
     private void createUIComponents() {
+        table1 = new JTable();
+        mainPanel = new JPanel();
         findDirectories();
         initializeModList();
         refreshModTable();

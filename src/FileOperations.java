@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 public class FileOperations {
     // Extracts a zip file to a specified directory
@@ -48,4 +49,46 @@ public class FileOperations {
             }
         }
     }
+
+    // Pack a directory into a zip fi;e
+    public static void pack(File source, File destination) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(destination);
+             ZipOutputStream zipOut = new ZipOutputStream(fos)) {
+            File[] files = source.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    packFile(file, zipOut, source.getAbsolutePath().length() + 1);
+                }
+            }
+        }
+    }
+
+    // Pack a file into a zip file
+private static void packFile(File file, ZipOutputStream zipOut, int basePathLength) throws IOException {
+        String filePath = file.getAbsolutePath().substring(basePathLength);
+        if (file.isHidden()) {
+            return;
+        }
+        if (file.isDirectory()) {
+            if (file.listFiles().length == 0) {
+                zipOut.putNextEntry(new ZipEntry(filePath + "/"));
+                zipOut.closeEntry();
+            } else {
+                for (File subFile : file.listFiles()) {
+                    packFile(subFile, zipOut, basePathLength);
+                }
+            }
+            return;
+        }
+        try (FileInputStream fis = new FileInputStream(file)) {
+            ZipEntry zipEntry = new ZipEntry(filePath);
+            zipOut.putNextEntry(zipEntry);
+            byte[] bytes = new byte[1024];
+            int length;
+            while ((length = fis.read(bytes)) >= 0) {
+                zipOut.write(bytes, 0, length);
+            }
+        }
+    }
+
 }
