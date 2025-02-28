@@ -24,7 +24,8 @@ jobs:
       - name: Package into JAR
         run: |
           mkdir -p build
-          jar cf build/MultiBal.jar -C out .
+          echo "Main-Class: Main" > manifest.txt
+          jar cfm build/MultiBal.jar manifest.txt -C out .
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
