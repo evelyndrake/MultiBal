@@ -50,7 +50,7 @@ jobs:
         with:
           tag: v1.0.${{ github.run_number }}  # Auto-incremented tag
           name: "MultiBal Release v1.0.${{ github.run_number }}"
-          draft: false
+          draft: true
           prerelease: false
           artifacts: "build/MultiBal.jar"
           token: ${{ secrets.GITHUB_TOKEN }}
